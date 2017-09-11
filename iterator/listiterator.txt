@@ -1,0 +1,43 @@
+int main()
+{
+
+	vector<int> arr; 
+	//声明一个int型变量.
+	vector<int> arr1(10);
+	// 声明一个初始大小为5的int对象.
+	vector<int> arr2(10, 1);
+	//声明一个初始大小为10且值都是1的对象.
+	vector<int> arr3(arr); 
+	//利用一个vector对象初始化自己
+	vector<int> arr4(arr.begin(), arr.begin() + 3);
+	//用对象arr的第0个到第2个值初始化arr4;
+	int array[5] = { 1, 2, 3, 4, 5};
+	vector<int> arr5(array, array + 5);
+	//将array数组用于初始化arr5对象.
+	vector<int> arr6(&array[1], &array[4]);
+	//将array[1]~array[4]范围内的元素作为vec的初始值.
+
+
+	//容量大小.
+
+	arr.size();       // 对象的大小
+
+	arr.max_size();   // 对象最大容量
+
+	arr.resize(100);  // 更改对象大小
+
+	arr.capacity();   // 对象的真实大小
+
+	arr.empty();     // 对象是否为空
+
+
+	//增删查改
+
+	arr.assign(array,array+2);  //多个元素赋值，类似于初始化时用数组进行赋值.
+	arr.push_back(10);           //末尾添加元素.
+	arr.pop_back();              //末尾删除元素.
+	arr.insert();
+
+	system("pause");
+	return 0;
+}
