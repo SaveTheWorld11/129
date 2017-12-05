@@ -1,0 +1,230 @@
+#include<iostream>
+#include<Windows.h>
+#include<string>
+#include<vector>
+#include<map>
+#include<assert.h>
+#include<queue>
+#include"unionFind.h"
+
+using namespace std;
+
+template<class V,class W,bool digraph = false>
+class GraphMartix
+{
+public:
+
+	GraphMartix()
+	{}
+
+	GraphMartix(V* vertexs, size_t n)
+	{
+		_vertexs.reserve(n);
+
+		for (size_t i = 0; i < n; ++i)
+		{
+			_vertexs.push_back(vertexs[i]);
+			_indexMap[vertexs[i]] = i;
+		}
+
+		_martix.resize(n);
+		for (size_t i = 0; i < _martix.size(); ++i)
+		{
+			_martix[i].resize(n);
+		}
+	}
+
+	size_t GetVertexIndex(const V& v)
+	{
+		assert(_indexMap.count(v) == 1);
+		return _indexMap[v];
+	}
+
+	void AddEdge(const V& src, const V& dst, const W& w)
+	{
+		size_t srcIndex = GetVertexIndex(src);
+		size_t dstIndex = GetVertexIndex(dst);
+
+		_martix[srcIndex][dstIndex] = w;
+		if (digraph == false)
+			_martix[dstIndex][srcIndex] = w;
+	}
+
+protected:
+
+	map<V, size_t> _indexMap;       //存储顶点
+	vector<V> _vertexs;            //顶点集合
+	vector<vector<W>> _martix;       //临接矩阵
+
+};
+
+void Test()
+{
+	string strs[] = { "MT", "LL","NJ","JT","666" };
+
+	GraphMartix<string, int> gm(strs,sizeof(strs)/sizeof(strs[0]));
+
+	gm.AddEdge("MT", "LL",30);
+	gm.AddEdge("LL", "NJ",40);
+	gm.AddEdge("JT", "666",50);
+	gm.AddEdge("666", "MT",60);
+	gm.AddEdge("JT", "NJ", 80);
+
+	system("pause");
+
+}
+
+
+template<class W>
+class LinkEdge
+{
+public:
+
+	W _w;
+
+	//记录两个临接顶点.
+	size_t _srcIndex; 
+	size_t _dstIndex;  
+
+	LinkEdge<W>* _next;
+
+	LinkEdge(size_t srcIndex, size_t dstIndex, const W& w)
+		:_srcIndex(srcIndex)
+		,_dstIndex(dstIndex)
+		,_w(w)
+		,_next(NULL)
+	{}
+
+};
+
+template<class V,class W,bool digraph = false>
+class GraphTable
+{
+	typedef LinkEdge<W> Edge;
+public:
+
+	GraphTable(V* vertexs, size_t n)
+	{
+		_vertexs.reserve(n);
+		for (size_t i = 0; i < n; ++i)
+		{
+			_vertexs.push_back(vertexs[i]);
+			_indexMap[vertexs[i]] = i;
+		}
+
+		_linkTables.resize(n,NULL);
+	}
+
+	size_t GetVertexIndex(const V& v)
+	{
+		assert(_indexMap.count(v) == 1);
+		return _indexMap[v];
+	}
+
+	void _AddEdge(size_t srcIndex, size_t dstIndex, const W& w)
+	{
+		Edge* tmp = new Edge(srcIndex, dstIndex, w);
+		tmp->_next = _linkTables[srcIndex];
+		_linkTables[srcIndex] = tmp;
+	}
+
+	void AddEdge(const V& src, const V& dst, const W& w)
+	{
+		size_t srcIndex = GetVertexIndex(src);
+		size_t dstIndex = GetVertexIndex(dst);
+
+		_AddEdge(srcIndex, dstIndex, w);
+		if (digraph == false)
+		{
+			_AddEdge(dstIndex, srcIndex, w);
+		}
+	}
+
+	void GFS(const V& src)
+	{
+
+		size_t srcIndex = GetVertexIndex(src);
+		queue<size_t> q;
+		vector<bool> visited;
+		visited.resize(_vertexs.size(), false);
+		q.push(srcIndex);
+
+		while (!q.empty())
+		{
+			size_t front = q.front();
+			q.pop();
+
+			if (visited[front] == true)
+				continue;
+
+			cout << front <<" "<< _vertexs[front] << "->";
+			visited[front] = true;
+			Edge* cur = _linkTables[front];
+
+			while (cur)
+			{
+				if (visited[cur->_dstIndex] == false)
+					q.push(cur->_dstIndex);
+
+				cur = cur->_next;
+			}
+		}
+		cout << endl;
+	}
+
+	void DFS(const V& src)
+	{
+		size_t srcIndex = GetVertexIndex(src);
+		vector<bool> visited;
+		visited.resize(_vertexs.size(), false);
+		_DFS(srcIndex, visited);
+	}
+
+	void _DFS(size_t srcIndex, vector<bool>& visited)
+	{
+		cout << srcIndex << " "<< _vertexs[srcIndex] << "->";
+
+		visited[srcIndex] = true;
+
+		Edge* cur = _linkTables[srcIndex];
+
+		while (cur)
+		{
+			if (visited[cur->_dstIndex] == false)
+			{
+				_DFS(cur->_dstIndex, visited);
+			}
+		
+			cur = cur->_next;
+		}
+		cout << endl;
+	}
+
+protected:
+	vector<V> _vertexs;  //顶点集合
+	map<V, size_t> _indexMap; ///存储顶点
+	vector<Edge*> _linkTables; //临接表
+};
+
+
+
+
+void Test2()
+{
+
+	string strs[] = { "MT", "LL", "NJ", "JT", "666" };
+
+	GraphTable<string, int> gt(strs, sizeof(strs) / sizeof(strs[0]));
+
+	gt.AddEdge("MT", "LL", 30);
+	gt.AddEdge("LL", "NJ", 40);
+	gt.AddEdge("JT", "666", 50);
+	gt.AddEdge("666", "MT", 60);
+	gt.AddEdge("JT", "NJ", 80);
+
+	gt.GFS("666");
+	gt.DFS("666");
+
+	system("pause");
+}
+
